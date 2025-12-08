@@ -66,7 +66,7 @@ class DHCP:
     
     @property
     def netmask(self):
-        return str(self.subnet.netmask)
+        return str(self.subnet.prefixlen)
     
     @property
     def pool_start(self):
@@ -129,7 +129,6 @@ def save_config_to_file(config):
     with open('/etc/kea/kea-dhcp4.conf', 'w') as f:
         json.dump(config, f, indent=4)
     execute_command('kea-dhcp4 -t /etc/kea/kea-dhcp4.conf')
-    execute_command('systemctl restart kea-dhcp4.service')
 
 def main():
     dhcp = []
@@ -160,6 +159,7 @@ def main():
                 for entry in dhcp:
                     fix_all_interface()
                     set_static_ip(entry.interface, f"{entry.gateway}/{entry.netmask}")
+            execute_command('systemctl restart kea-dhcp4.service')
             not_done = False
         elif dhcp_input == 'p':
             print(generate_config(dhcp))

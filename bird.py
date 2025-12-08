@@ -48,7 +48,7 @@ def generate_bird_config(router_id, ospf_configs):
 def main():
     interfaces = get_interfaces()
     display_interfaces()
-    router_id = execute_command("ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'")
+    router_id = execute_command("ip -4 addr show enp0s3 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'")
     if not validate_ipv4_address(router_id):
         router_id = validate_input(Strings.Bird.router_id_prompt, validate_ipv4_address)
     ospf_participants = input("Enter OSPF participants' index as displayed (leave blank if none):\n> ")
