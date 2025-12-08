@@ -8,7 +8,7 @@ def read_file(file_path):
     
 def execute_command(command):
     print(f"Executing command: {command}")
-    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     if result.returncode != 0:
         raise Exception(f"Command '{command}' failed with error: {result.stderr}")
     return result.stdout.strip()

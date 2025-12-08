@@ -14,7 +14,7 @@ class OSPF:
         return f"""
       interface "{self.interface}" {{
         {'stub;' if self.stub else ''}
-      }}
+      }};
 """
     
 base_bird_config = """

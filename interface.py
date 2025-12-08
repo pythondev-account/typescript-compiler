@@ -3,8 +3,8 @@ from strings import Strings
 import ipaddress
 
 def set_static_ip(interface, ip_address):
-    command = f'sudo nmcli con modify {interface} ipv4.addresses {ip_address} ipv4.method manual'
-    execute_command(command)
+    execute_command(f'sudo nmcli con up {interface} ifname {interface}')    
+    execute_command(f'sudo nmcli con modify {interface} ipv4.addresses {ip_address} ipv4.method manual')
 
 def main():
     print(Strings.Interface.main_help)
@@ -17,6 +17,7 @@ def main():
             print("Exiting interface configuration.")
             break
         selected_interface = interfaces[int(choice) - 1]
+        execute_command(f'sudo nmcli con up {selected_interface} ifname {selected_interface}')
         print(Strings.Interface.nmcli_options)
         option = validate_input("Enter your choice (1-4): ", 
                                 lambda x: x in ['1', '2', '3', '4'])

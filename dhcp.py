@@ -125,7 +125,7 @@ def save_config_to_file(config):
     with open('/etc/kea/kea-dhcp4.conf', 'w') as f:
         json.dump(config, f, indent=4)
     execute_command('kea-dhcp4 -t /etc/kea/kea-dhcp4.conf')
-    execute_command('systemctl reload kea-dhcp4.service')
+    execute_command('systemctl restart kea-dhcp4.service')
 
 def main():
     dhcp = []
