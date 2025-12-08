@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 from helper import read_file, execute_command, validate_input, get_interfaces, validate_ipv4_address, validate_ipv4_network
-from interface import set_static_ip
+from interface import set_static_ip, fix_all_interface
 from strings import Strings
 
     
@@ -63,6 +63,10 @@ class DHCP:
     def gateway(self):
         hosts = list(self.subnet.hosts())
         return str(hosts[0])
+    
+    @property
+    def netmask(self):
+        return str(self.subnet.netmask)
     
     @property
     def pool_start(self):
@@ -154,7 +158,8 @@ def main():
             static_ip = validate_input("Do you want to set a static IP for the DHCP server interface? (y/n): ", lambda x: x.lower() in ['y', 'n'])
             if static_ip.lower() == 'y':
                 for entry in dhcp:
-                    set_static_ip(entry.interface, f"{entry.gateway}/24")
+                    fix_all_interface()
+                    set_static_ip(entry.interface, f"{entry.gateway}/{entry.netmask}")
             not_done = False
         elif dhcp_input == 'p':
             print(generate_config(dhcp))

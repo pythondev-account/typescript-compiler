@@ -3,10 +3,16 @@ from strings import Strings
 import ipaddress
 
 def set_static_ip(interface, ip_address):
-    execute_command(f'sudo nmcli con up {interface} ifname {interface}')    
     execute_command(f'sudo nmcli con modify {interface} ipv4.addresses {ip_address} ipv4.method manual')
 
+def fix_all_interface():
+    output = execute_command("nmcli -g NAME,DEVICE connection show")
+    connections = [line.split(":") for line in output.splitlines() if line]
+    for conn_name, device in connections:
+        execute_command(f'sudo nmcli con modify "{conn_name}" con-name {device}')
+
 def main():
+    fix_all_interface()
     print(Strings.Interface.main_help)
     interfaces = get_interfaces()
     display_interfaces()
