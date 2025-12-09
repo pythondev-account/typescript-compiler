@@ -33,6 +33,7 @@ Choose an option for your network interface configuration:
 2. Set DHCP
 3. Setup gateway and DNS
 4. Add Static Route
+5. Configure bridging
 """
     class Bird:
         router_id_prompt = "Error occured with getting Router ID. Please enter a valid Router ID, you can check your Router ID with an IPv4 address: "

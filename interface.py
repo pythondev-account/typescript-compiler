@@ -17,16 +17,28 @@ def main():
     interfaces = get_interfaces()
     display_interfaces()
     while True:
-        choice = validate_input("Select an interface by number: ", 
+        choice = validate_input("Select an interface by number (use lo to configure bridge): ", 
                                 lambda x: x == "q" or (x.isdigit() and 1 <= int(x) <= len(interfaces)))
         if choice == "q":
             print("Exiting interface configuration.")
             break
+        
         selected_interface = interfaces[int(choice) - 1]
+        if selected_interface == "lo":
+            # we use this to configure bridge
+            bridge_name = validate_input("Enter bridge name: ", lambda x: len(x) > 0)
+            display_interfaces()
+            slaves = validate_input("Enter interfaces to add to bridge (space separated), you must enter the full interface names: ", lambda x: all(iface in interfaces for iface in x.split()))
+            slave_list = slaves.split()
+            execute_command(f" nmcli con add type bridge connection_name {bridge_name} ifname {bridge_name}")
+            for slave in slave_list:
+                execute_command(f"nmcli con add type ethernet slave-type bridge con-name {slave} ifname {slave} master {bridge_name}")
+            execute_command(f'nmcli con modify {bridge_name} connection.autoconnect-slaves 1')
+            execute_command(f'nmcli con up {bridge_name}')
         execute_command(f'sudo nmcli con up {selected_interface} ifname {selected_interface}')
         print(Strings.Interface.nmcli_options)
         option = validate_input("Enter your choice (1-4): ", 
-                                lambda x: x in ['1', '2', '3', '4'])
+                                lambda x: x in ['1', '2', '3', '4','5'])
         if option == '1':
             static_ip = validate_input("Enter static IP (e.g., 192.168.1.100/24): ", validate_ipv4_network)
             set_static_ip(selected_interface, static_ip)
@@ -42,7 +54,8 @@ def main():
             route = validate_input("Enter static route (e.g., 192.168.1.0/24 192.168.1.1): ", lambda x: len(x.split(" ")) == 2 and validate_ipv4_network(x.split(" ")[0]) and validate_ipv4_address(x.split(" ")[1]))  
             destination, via = route.split(" ")
             execute_command(f'sudo nmcli con modify {selected_interface} +ipv4.routes "{destination} {via}"')
-
+        elif option == '5':
+            pass
         execute_command(f'sudo nmcli con up {selected_interface}')
         execute_command('sudo nmcli con reload')
 
