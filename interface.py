@@ -30,7 +30,7 @@ def main():
             display_interfaces()
             slaves = validate_input("Enter interfaces to add to bridge (space separated), you must enter the full interface names: ", lambda x: all(iface in interfaces for iface in x.split()))
             slave_list = slaves.split()
-            execute_command(f" nmcli con add type bridge connection_name {bridge_name} ifname {bridge_name}")
+            execute_command(f" nmcli con add type bridge con-name {bridge_name} ifname {bridge_name}")
             for slave in slave_list:
                 execute_command(f"nmcli con add type ethernet slave-type bridge con-name {slave} ifname {slave} master {bridge_name}")
             execute_command(f'nmcli con modify {bridge_name} connection.autoconnect-slaves 1')
