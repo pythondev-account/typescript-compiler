@@ -126,9 +126,18 @@ def generate_config(dhcp_list):
     return kea_config
 
 def save_config_to_file(config):
-    with open('/etc/kea/kea-dhcp4.conf', 'w') as f:
-        json.dump(config, f, indent=4)
-    execute_command('kea-dhcp4 -t /etc/kea/kea-dhcp4.conf')
+    try:
+        with open('/etc/kea/kea-dhcp4.conf', 'w') as f:
+            json.dump(config, f, indent=4)
+        print("Configuration file written successfully")
+        
+        # Validate the configuration
+        execute_command('kea-dhcp4 -t /etc/kea/kea-dhcp4.conf')
+        print("Configuration validated successfully")
+        return True
+    except Exception as e:
+        print(f"Failed to save or validate configuration: {e}")
+        return False
 
 def main():
     dhcp = []
@@ -153,13 +162,22 @@ def main():
             print(dhcp)
         elif dhcp_input == 'm':
             print("Saving DHCP configuration and reloading DHCP server...")
-            save_config_to_file(generate_config(dhcp))
+            if not save_config_to_file(generate_config(dhcp)):
+                print("Failed to save configuration. Please fix errors and try again.")
+                continue
+                
             static_ip = validate_input("Do you want to set a static IP for the DHCP server interface? (y/n): ", lambda x: x.lower() in ['y', 'n'])
             if static_ip.lower() == 'y':
                 for entry in dhcp:
                     fix_all_interface()
                     set_static_ip(entry.interface, f"{entry.gateway}/{entry.netmask}")
-            execute_command('systemctl restart kea-dhcp4.service')
+            
+            try:
+                execute_command('systemctl restart kea-dhcp4.service')
+                print("DHCP service restarted successfully")
+            except Exception as e:
+                print(f"Failed to restart DHCP service: {e}")
+            
             not_done = False
         elif dhcp_input == 'p':
             print(generate_config(dhcp))

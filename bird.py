@@ -46,29 +46,60 @@ def generate_bird_config(router_id, ospf_configs):
     return base_bird_config + base_bird_router_id.format(router_id=router_id) + base_bird_pre + "\n".join([ospf.export() for ospf in ospf_configs]) + base_bird_post
 
 def main():
-    interfaces = get_interfaces()
-    display_interfaces()
-    router_id = execute_command("ip -4 addr show enp0s3 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'")
-    if not validate_ipv4_address(router_id):
-        router_id = validate_input(Strings.Bird.router_id_prompt, validate_ipv4_address)
-    ospf_participants = input("Enter OSPF participants' index as displayed (leave blank if none):\n> ")
-    ospf_stubs = input("Enter OSPF interface indexes to be marked as stub (leave blank if none):\n> ")
-    ospf_list = ospf_participants.split() if ospf_participants else []
-    ospf_configs = []
-    for ospf in ospf_list:
+    try:
+        interfaces = get_interfaces()
+        display_interfaces()
+        
+        # Try to get router ID, with fallback
+        router_id = ""
         try:
-            interface_name = interfaces[int(ospf) - 1]
-            is_stub = ospf in ospf_stubs.split() if ospf_stubs else False
-            ospf_configs.append(OSPF(interface_name, is_stub))
+            router_id = execute_command(r"ip -4 addr show enp0s3 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'", check=False, suppress_errors=True)
+        except Exception:
+            pass
+            
+        if not validate_ipv4_address(router_id):
+            router_id = validate_input(Strings.Bird.router_id_prompt, validate_ipv4_address)
+        
+        ospf_participants = input("Enter OSPF participants' index as displayed (leave blank if none):\n> ")
+        ospf_stubs = input("Enter OSPF interface indexes to be marked as stub (leave blank if none):\n> ")
+        ospf_list = ospf_participants.split() if ospf_participants else []
+        ospf_configs = []
+        
+        for ospf in ospf_list:
+            try:
+                interface_name = interfaces[int(ospf) - 1]
+                is_stub = ospf in ospf_stubs.split() if ospf_stubs else False
+                ospf_configs.append(OSPF(interface_name, is_stub))
+            except Exception as e:
+                print(f"Error occurred parsing OSPF participant index {ospf}: {e}")
+        
+        bird_config = generate_bird_config(router_id, ospf_configs)
+        print(bird_config)
+        input("Press Enter to save the configuration to /etc/bird.conf and restart BIRD.")
+        
+        try:
+            with open('/etc/bird.conf', 'w') as f:
+                f.write(bird_config)
+            print("Configuration file written successfully")
         except Exception as e:
-            print(f"Error occured parsing OSPF participant index {ospf}: {e}")
-    bird_config = generate_bird_config(router_id, ospf_configs)
-    print(bird_config)
-    input("Press Enter to save the configuration to /etc/bird.conf and restart BIRD.")
-    with open('/etc/bird.conf', 'w') as f:
-        f.write(bird_config)
-    execute_command('sudo bird -p')
-    execute_command('systemctl restart bird')
+            print(f"Failed to write configuration file: {e}")
+            return
+        
+        try:
+            execute_command('sudo bird -p')
+            print("BIRD configuration validated successfully")
+        except Exception as e:
+            print(f"BIRD configuration validation failed: {e}")
+            return
+        
+        try:
+            execute_command('systemctl restart bird')
+            print("BIRD service restarted successfully")
+        except Exception as e:
+            print(f"Failed to restart BIRD service: {e}")
+            
+    except Exception as e:
+        print(f"Error in BIRD configuration: {e}")
 
 if __name__ == "__main__":
     main()
