@@ -57,7 +57,9 @@ def delete_static_route(interface):
         
         route_to_delete = validate_input(
             "Enter the route to delete (e.g., 192.168.1.0/24 192.168.1.1) or 'q' to cancel: ",
-            lambda x: x == 'q' or (len(x.split(" ")) == 2 and validate_route(x.split(" ")[0], x.split(" ")[1]))
+            lambda x: x == 'q' or (
+                len(parts := x.split(" ")) == 2 and validate_route(parts[0], parts[1])
+            )
         )
         
         if route_to_delete == 'q':

@@ -38,4 +38,4 @@ Choose an option for your network interface configuration:
 7. Configure bridging
 """
     class Bird:
-        router_id_prompt = "Error occured with getting Router ID. Please enter a valid Router ID, you can check your Router ID with an IPv4 address: "
+        router_id_prompt = "Error occurred with getting Router ID. Please enter a valid Router ID, you can check your Router ID with an IPv4 address: "

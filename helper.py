@@ -1,8 +1,6 @@
 import subprocess
 import os
 import ipaddress
-import logging
-import shlex
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
@@ -93,6 +91,12 @@ def display_interfaces():
         print(f"{idx}. {iface}")
 
 def validate_ipv4_network(ip_str):
+    """
+    Validate an IPv4 network in CIDR notation.
+    
+    Note: This function rejects /32 networks as they represent single hosts,
+    not networks. This is intentional for routing configuration purposes.
+    """
     try:
         ipnetwork = ipaddress.IPv4Network(ip_str, strict=False)
         if ipnetwork.prefixlen < 32:
